@@ -1,17 +1,7 @@
-output/
+output/*
+!output/bubblepop.hex
+
 *.uvgui.*
 *.uvopt
 *.bak
 *.dep
-
-# stray build output if it lands outside output/
-*.o
-*.axf
-*.hex
-*.crf
-*.d
-*.lst
-*.map
-*.lnp
-*.htm
-*.__i
