@@ -13,7 +13,7 @@
 typedef struct {
 	int x, y, w, h;
 	char *label;
-	int state;
+	int colour;
 } Tile;
 
 // Used to enable or disable different subsystems
@@ -32,6 +32,8 @@ static SystemEnable mode_presets[4] = {
 	{0,0,0,0}, // Manual
 };
 
+static SystemEnable sys = {1,1,1,1};
+
 // Screen state
 typedef enum { SCREEN_HOME, SCREEN_MODE } Screen;
 static Screen currentScreen = SCREEN_HOME;
@@ -42,20 +44,20 @@ static SystemMode currentMode = MODE_NORMAL;
 
 // Home tiles. 2x2 grid
 static Tile home_tiles[4] = {
-  { 5, 40, TILE_W, TILE_H, "Mode", 0 },
-	{ 125, 40, TILE_W, TILE_H, "Blinds", 0 },
-  { 5, 140, TILE_W, TILE_H, "Climate Ctrl", 0 },
-  { 125,140, TILE_W, TILE_H, "Coffee", 0 }
+  { 5, 40, TILE_W, TILE_H, "Mode", DARK_GRAY },
+	{ 125, 40, TILE_W, TILE_H, "Blinds", DARK_GRAY },
+  { 5, 140, TILE_W, TILE_H, "Climate Ctrl", DARK_GRAY },
+  { 125,140, TILE_W, TILE_H, "Coffee", DARK_GRAY }
 };
 
 // mode tiles. 4x1 grid
 // state parameter determines active mode
 static Tile mode_tiles[5] = {
-	{ 5, 5, 70, 25, "< Back", 0},
-	{ 5, 60, 230, 50, "Away", 0},
-	{ 5, 120, 230, 50, "Sleep", 0},
-	{ 5, 180, 230, 50, "Normal", 1},
-	{ 5, 240, 230, 50, "Manual", 0}
+	{ 5, 5, 70, 25, "< Back", DARK_GRAY},
+	{ 5, 60, 230, 50, "Away", DARK_GRAY},
+	{ 5, 120, 230, 50, "Sleep", DARK_GRAY},
+	{ 5, 180, 230, 50, "Normal", DARK_GRAY},
+	{ 5, 240, 230, 50, "Manual", DARK_GRAY}
 };
 
 void draw_tile(Tile *t);
@@ -71,7 +73,6 @@ int main(void) {
 	char x=0, y=0;
 	int pressure = 0;
 	// Default to normal mode
-	SystemEnable se = mode_presets[2];
 	char redraw = 1;
 	char buf[40];
 	
@@ -91,8 +92,9 @@ int main(void) {
 		
 		touch_read_xy(&x,&y, &pressure);
 		
-		sprintf(buf, "x%3d y%3d p%6d s%d",
-            (unsigned char)x, (unsigned char)y);
+		sprintf(buf, "x%3d y%3d h%2d s%d",
+        (unsigned char)x, (unsigned char)y,
+        poll_tile(mode_tiles, 5, x, y), currentScreen);
     lcd_fillRect(0, 305, 239, 319, BLACK);
     lcd_putString(2, 308, (unsigned char *)buf);
 		
@@ -109,9 +111,8 @@ int main(void) {
 
 // Draws a rectangle on the screen with the text.
 void draw_tile(Tile *t) {
-	int fill = t->state ? GREEN : DARK_GRAY;
 	int ty = t->y + (t->h / 2)-4;
-	lcd_fillRect(t->x, t->y, t->x + t->w, t->y + t->h, fill);
+	lcd_fillRect(t->x, t->y, t->x + t->w, t->y + t->h, t->colour);
 	lcd_putString(t->x + 10, ty, (unsigned char *)t->label);
 }
 
@@ -155,21 +156,11 @@ void draw_menu(Screen s) {
 	}
 }
 
-void apply_mode(SystemMode m, SystemEnable *se) {
-	switch (m) {
-		case MODE_AWAY:
-			*se = mode_presets[0];
-			break;
-		case MODE_SLEEP:
-			*se = mode_presets[1];
-			break;
-		case MODE_NORMAL:
-			*se = mode_presets[2];
-			break;
-		case MODE_MANUAL:
-			*se = mode_presets[3];
-			break;
+void apply_mode(SystemMode m) {
+	if (m != MODE_MANUAL) {
+		sys = mode_presets[m];
 	}
+	currentMode = m;
 }
 
 // handles button presses for home menu
@@ -195,12 +186,31 @@ int handle_home(int hit) {
 // handles button presses for node menu
 // return 1 if the press requires a redraw
 int handle_mode(int hit) {
-	switch (hit) {
-		case 0:
-			currentScreen = SCREEN_HOME;
-			return 1;
-		default: return 0;
+	SystemMode m;
+
+	if (hit < 0) {
+		return 0;
 	}
+
+	if (hit == 0) {            // Back button
+		currentScreen = SCREEN_HOME;
+		return 1;
+	}
+
+	if (hit > 4) {
+		return 0;
+	}
+
+	m = (SystemMode)(hit - 1);   // tile 1..4 maps to mode 0..3
+
+	if (m == currentMode) {
+		return 0;
+	}
+
+	mode_tiles[currentMode + 1].colour = DARK_GRAY;
+	currentMode = m;
+	mode_tiles[currentMode + 1].colour = GREEN;
+	return 1;
 }
 	
 			
