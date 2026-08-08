@@ -1,8 +1,10 @@
 #include "bubbles.h"
+#include "doorbell.h"
 #include "touch.h"
 #include "lcd/lcd_grph.h"
 #include "delay.h"    
 #include <stdlib.h>
+#include <stdio.h>
 
 #define SCREEN_W 240
 #define SCREEN_H 320
@@ -56,7 +58,7 @@ static Tile mode_tiles[5] = {
 	{ 5, 5, 70, 25, "< Back", DARK_GRAY},
 	{ 5, 60, 230, 50, "Away", DARK_GRAY},
 	{ 5, 120, 230, 50, "Sleep", DARK_GRAY},
-	{ 5, 180, 230, 50, "Normal", DARK_GRAY},
+	{ 5, 180, 230, 50, "Normal", GREEN},
 	{ 5, 240, 230, 50, "Manual", DARK_GRAY}
 };
 
@@ -65,7 +67,7 @@ int poll_tile(Tile *t, int count, int x, int y);
 void draw_menu(Screen s);
 void draw_homeMenu(void);
 void draw_modeMenu(void);
-void apply_mode(SystemMode m, SystemEnable *se);
+void apply_mode(SystemMode m);
 int handle_home(int hit);
 int handle_mode(int hit);
 
@@ -78,13 +80,15 @@ int main(void) {
 	
 	//Setup LCD
 	lcd_init();
-	
 	//Setup touchscreen
 	touch_init();
+	// Setup timer0 and doorbell
+	doorbell_init();
 	
 	//Loop forever
 	while (1) {
 		//redraw
+		doorbell_poll(sys.doorbell_enable);
 		if (redraw == 1) {
 			draw_menu(currentScreen);
 			redraw = 0;
@@ -157,9 +161,7 @@ void draw_menu(Screen s) {
 }
 
 void apply_mode(SystemMode m) {
-	if (m != MODE_MANUAL) {
-		sys = mode_presets[m];
-	}
+	sys = mode_presets[m];
 	currentMode = m;
 }
 
@@ -208,7 +210,7 @@ int handle_mode(int hit) {
 	}
 
 	mode_tiles[currentMode + 1].colour = DARK_GRAY;
-	currentMode = m;
+	apply_mode(m);
 	mode_tiles[currentMode + 1].colour = GREEN;
 	return 1;
 }
