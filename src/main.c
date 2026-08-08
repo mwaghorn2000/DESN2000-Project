@@ -14,17 +14,25 @@ typedef struct {
 	int state;
 } Tile;
 
-typdef enum { SCREEN_HOME, SCREEN_MODE } Screen;
+typedef enum { SCREEN_HOME, SCREEN_MODE } Screen;
 static Screen currentScreen = SCREEN_HOME;
 
 typedef enum { MODE_AWAY, MODE_SLEEP, MODE_NORMAL, MODE_MANUAL } SystemMode;
 static SystemMode currentMode = MODE_NORMAL;
 
 static Tile home_tiles[4] = {
-    {  5,  40, TILE_W, TILE_H, "Mode",   0 },
-    { 125, 40, TILE_W, TILE_H, "Blinds",  0 },
-    {  5, 140, TILE_W, TILE_H, "Climate Ctrl", 0 },
-    { 125,140, TILE_W, TILE_H, "Coffee",   0 }
+  { 5, 40, TILE_W, TILE_H, "Mode", 0 },
+	{ 125, 40, TILE_W, TILE_H, "Blinds", 0 },
+  { 5, 140, TILE_W, TILE_H, "Climate Ctrl", 0 },
+  { 125,140, TILE_W, TILE_H, "Coffee", 0 }
+};
+
+static Tile mode_tiles[5] = {
+	{ 5, 5, 70, 25, "< Back", 0},
+	{ 5, 60, 235, 50, "Away", 0},
+	{ 5, 120, 235, 50, "Sleep", 0},
+	{ 5, 180, 235, 50, "Normal", 0},
+	{ 5, 240, 235, 50, "Manual", 0}
 };
 
 void draw_tile(Tile *t);
