@@ -4,7 +4,7 @@
 #define CS_PIN            0x00100000        //P0.20
 
 static unsigned char touch_read(unsigned char command);
-void touch_read_xy(char *x, char *y, char *z1, char *z2);
+void touch_read_xy(char *x, char *y, int *pressure);
 
 void touch_init(void)
 {
@@ -20,15 +20,22 @@ void touch_init(void)
 	FIO0DIR |= (0x1 << 20);
 }
 
-void touch_read_xy(char *x, char *y, char *z1, char *z2)
+void touch_read_xy(char *x, char *y, int *pressure)
 {
+	char z1 = 0;
+	char z2 = 0;
 	//Read X co-ordinate from the touch screen controller
 	*x = touch_read(0xD8);
 	//Read Y co-ordinate from the touch screen controller
 	*y = touch_read(0x98);
 	
-	*z1 = touch_read(0x78);
-	*z2 = touch_read(0xB8);
+	z1 = touch_read(0x78);
+	z2 = touch_read(0xB8);
+	if (z1 == 0) {
+        *pressure = 0;       /* not touching */
+    } else {
+        *pressure = (400 * (*x) * (z2 - z1)) / (256 * z1);
+    }
 }
 
 static unsigned char touch_read(unsigned char command)
