@@ -12,11 +12,6 @@
 #define DURATION2 600000
 #define VOLUME 0x300
 
-static const unsigned short sine16[16] = {
-	512, 708, 874, 985, 1023, 985, 874, 708,
-	512, 316, 150,  39,    0,  39, 150, 316
-};
-
 void doorbell_init(void) {
 	// button is GPIO already. Already input
 	
