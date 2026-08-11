@@ -1,5 +1,7 @@
 #include "plug.h"
 
+#define MINS_IN_DAY 1440
+
 static int plug_state = 0;
 
 void plug_set(int on) {
@@ -17,12 +19,12 @@ int plug_service(int now_minutes, int coffee_time, int enabled) {
 	
 	start = coffee_time - PLUG_LEAD;
 	if (start < 0) {
-		start += 1440;
+		start += MINS_IN_DAY;
 	}
 	
 	end = start + PLUG_FOLLOW;
-	if (end >= 1440) {
-		end -= 1440;
+	if (end >= MINS_IN_DAY) {
+		end -= MINS_IN_DAY;
 	}
 	
 	if (start <= end) {
