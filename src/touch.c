@@ -29,8 +29,8 @@ void touch_read_xy(char *x, char *y, int *pressure)
 	//Read Y co-ordinate from the touch screen controller
 	*y = touch_read(0x98);
 	
-	z1 = touch_read(0xB8);
-	z2 = touch_read(0xC8);
+	z1 = touch_read(0x78);
+	z2 = touch_read(0xB8);
 	if (z1 == 0) {
         *pressure = 0;       /* not touching */
     } else {
